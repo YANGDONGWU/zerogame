@@ -1,0 +1,12 @@
+Name: login.rpc
+ListenOn: 0.0.0.0:12001
+Etcd:
+  Hosts:
+  - 127.0.0.1:2379
+  Key: login.rpc
+
+UserRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: user.rpc

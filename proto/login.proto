@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+package proto.login;
+option go_package = "./login";
+
+//////////////////////////////////////////////////////
+// Login Service
+//////////////////////////////////////////////////////
+
+service LoginService {
+
+  // 登录
+  rpc Logon(LogonRequest) returns (LogonResponse);
+
+  // 注册
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  // 密码重置
+  rpc ResetPassword(PasswordResetRequest) returns (PasswordResetResponse);
+
+  // 获取验证码
+  rpc SendVerifyCode(VerifyCodeRequest) returns (VerifyCodeResponse);
+
+  // 账号绑定查询
+  rpc BindQuery(BindQueryRequest) returns (BindQueryResponse);
+
+  // 查询玩家当前游戏
+  rpc CurrentGameQuery(CurrentGameQueryRequest)
+      returns (CurrentGameQueryResponse);
+
+  // 检查用户状态
+  rpc CheckUserStatus(CheckUserStatusRequest)
+      returns (CheckUserStatusResponse);
+
+  // 封禁用户
+  rpc BanUser(BanUserRequest) returns (BanUserResponse);
+}
+
+//////////////////////////////////////////////////////
+// Login
+//////////////////////////////////////////////////////
+
+message LogonRequest {
+  string accounts        = 1;
+  string password        = 2;
+  int32  type             = 3; // 0游客 1账号 5手机 6邮箱 7TG
+  string sys_version      = 4;
+  string models           = 5;
+  string channel          = 6;
+  string platform         = 7;
+  string versions         = 8;
+  string location         = 9;
+  string token            = 10;
+  int32  shop_id          = 11;
+  string device_model     = 12;
+  string gps              = 13;
+}
+
+message LogonResponse {
+  int32  user_id          = 1;
+  int32  error_code       = 2;
+  string confine_time     = 3;
+  string token            = 4;
+  string skin             = 5;
+  string ui_type          = 6;
+  string versions         = 7;
+  int32  login_count      = 8;
+}
+
+//////////////////////////////////////////////////////
+// Register
+//////////////////////////////////////////////////////
+
+message RegisterRequest {
+  string accounts     = 1;
+  string password     = 2;
+  string nickname     = 3;
+  int32  sex           = 4;
+  string sys_version   = 5;
+  string models        = 6;
+  string channel       = 7;
+  string ip            = 8;
+  string phone_type    = 9;
+  string platform      = 10;
+  string versions      = 11;
+  string location      = 12;
+  int32  shop_id       = 13;
+  string face_id       = 14;
+  int32  register_way  = 15; // 5手机 6邮箱
+  string verify_code   = 16;
+}
+
+message RegisterResponse {
+  int32  user_id    = 1;
+  int32  error_code = 2;
+  string skin       = 3;
+  string ui_type    = 4;
+  string versions   = 5;
+}
+
+//////////////////////////////////////////////////////
+// Verify Code
+//////////////////////////////////////////////////////
+
+message VerifyCodeRequest {
+  int32  way       = 1; // 5手机 6邮箱
+  string address   = 2;
+  int32  purpose   = 3; // 0注册 1重置密码
+  string account   = 4;
+}
+
+message VerifyCodeResponse {
+  int32 result = 1;
+  int32 way    = 2;
+}
+
+//////////////////////////////////////////////////////
+// Password Reset
+//////////////////////////////////////////////////////
+
+message PasswordResetRequest {
+  int32  way          = 1;
+  string address      = 2;
+  string verify_code  = 3;
+  string new_password = 4;
+}
+
+message PasswordResetResponse {
+  int32 result = 1;
+}
+
+//////////////////////////////////////////////////////
+// Bind Query
+//////////////////////////////////////////////////////
+
+message BindQueryRequest {
+  string account = 1;
+}
+
+message BindQueryResponse {
+  int32 result = 1; // 0无 1手机 2邮箱 3都有
+}
+
+//////////////////////////////////////////////////////
+// Current Game
+//////////////////////////////////////////////////////
+
+message CurrentGameQueryRequest {
+  int32 user_id = 1;
+}
+
+message CurrentGameQueryResponse {
+  int32  game_id  = 1;
+  string table_id = 2;
+}
+
+//////////////////////////////////////////////////////
+// User Status
+//////////////////////////////////////////////////////
+
+message CheckUserStatusRequest {
+  int32 user_id = 1;
+}
+
+message CheckUserStatusResponse {
+  bool   is_banned = 1;
+  string reason    = 2;
+}
+
+message BanUserRequest {
+  int64  user_id           = 1;
+  int32  duration_seconds  = 2;
+  string reason            = 3;
+}
+
+message BanUserResponse {}

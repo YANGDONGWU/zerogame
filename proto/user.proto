@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package proto.user;
+option go_package = "./user";
+
+service UserService {
+  rpc GetUserInfo(GetUserInfoRequest) returns (GetUserInfoResponse);
+}
+
+message GetUserInfoRequest {
+  int64 user_id = 1;
+}
+
+message GetUserInfoResponse {
+  int64 user_id = 2;
+  string nickname = 3;
+  int64 gold = 4;
+}

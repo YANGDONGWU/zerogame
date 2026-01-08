@@ -1,0 +1,35 @@
+syntax = "v1"
+
+info (
+	title:   "Gateway API"
+	desc:    "HTTP Gateway"
+	author:  "zerogame"
+	version: "v1"
+)
+
+type LoginReq {
+	accounts string `json:"accounts"`
+	password string `json:"password"`
+}
+
+type LoginResp {
+	userId int64  `json:"userId"`
+	token  string `json:"token"`
+}
+
+type Request {
+	Name string `path:"name,options=you|me"`
+}
+
+type Response {
+	Message string `json:"message"`
+}
+
+service gateway_http-api {
+	@handler Gateway_httpHandler
+	get /from/:name (Request) returns (Response)
+
+	@handler Login
+	post /login (LoginReq) returns (LoginResp)
+}
+
