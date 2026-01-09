@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: local-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: admin
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: 
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    networks:
+      - dev-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: local-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass redispassword
+    networks:
+      - dev-network
+
+  # Consul 服务发现
+  consul:
+    image: consul:1.15
+    container_name: local-consul
+    restart: unless-stopped
+    ports:
+      - "8500:8500"  # Web UI
+      - "8600:8600/udp"  # DNS
+    volumes:
+      - consul_data:/consul/data
+    command: >
+      agent -server -bootstrap-expect=1 -ui
+      -client=0.0.0.0 -bind=0.0.0.0
+      -data-dir=/consul/data
+    networks:
+      - dev-network
+
+  # NATS 消息系统
+  nats:
+    image: nats:2.9
+    container_name: local-nats
+    restart: unless-stopped
+    ports:
+      - "4222:4222"  # Client connections
+      - "8222:8222"  # HTTP monitoring
+    command: >
+      -c /etc/nats/nats.conf
+    volumes:
+      - ./nats/nats.conf:/etc/nats/nats.conf
+    networks:
+      - dev-network
+
+  # Etcd 服务
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.10
+    container_name: local-etcd
+    restart: unless-stopped
+    ports:
+      - "2379:2379"   # client 通信端口
+      - "2380:2380"   # peer 通信端口
+    environment:
+      ETCD_NAME: "local-etcd"
+      ETCD_DATA_DIR: "/etcd-data"
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: "http://0.0.0.0:2380"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_LISTEN_PEER_URLS: "http://0.0.0.0:2380"
+      ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_INITIAL_CLUSTER: "local-etcd=http://0.0.0.0:2380"
+      ETCD_INITIAL_CLUSTER_STATE: "new"
+      ETCD_INITIAL_CLUSTER_TOKEN: "etcd-cluster-1"
+    volumes:
+      - etcd_data:/etcd-data
+    networks:
+      - dev-network
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  consul_data:
+    driver: local
+  etcd_data:
+    driver: local
+
+networks:
+  dev-network:
+    driver: bridge
+    name: mqant-dev-network
