@@ -1,0 +1,173 @@
+syntax = "proto3";
+
+package proto.websocket;
+option go_package = "./websocket";
+
+import "proto/common.proto";
+
+// WebSocket消息类型枚举
+enum MessageType {
+  // 客户端消息类型
+  MSG_HEARTBEAT         = 0;    // 心跳
+  MSG_LOGIN             = 1;    // 登录
+  MSG_LOGOUT            = 2;    // 登出
+  MSG_JOIN_ROOM         = 3;    // 加入房间
+  MSG_LEAVE_ROOM        = 4;    // 离开房间
+  MSG_GAME_ACTION       = 5;    // 游戏操作
+  MSG_CHAT              = 6;    // 聊天消息
+  MSG_USER_INFO_QUERY   = 7;    // 用户信息查询
+  MSG_ROOM_LIST_QUERY   = 8;    // 房间列表查询
+
+  // 服务端推送消息类型
+  MSG_PUSH_GAME_STATE   = 100;  // 游戏状态推送
+  MSG_PUSH_ROOM_INFO    = 101;  // 房间信息推送
+  MSG_PUSH_USER_UPDATE  = 102;  // 用户状态更新
+  MSG_PUSH_SYSTEM_MSG   = 103;  // 系统消息
+  MSG_PUSH_CHAT_MSG     = 104;  // 聊天消息推送
+  MSG_PUSH_BROADCAST    = 105;  // 广播消息
+}
+
+// WebSocket消息头
+message MessageHeader {
+  MessageType msg_type     = 1;  // 消息类型
+  string      msg_id       = 2;  // 消息ID（用于请求响应配对）
+  int64       timestamp    = 3;  // 时间戳
+  int32       user_id      = 4;  // 用户ID
+  string      room_id      = 5;  // 房间ID
+  string      game_id      = 6;  // 游戏ID
+}
+
+// WebSocket消息体
+message WebSocketMessage {
+  MessageHeader header = 1;
+  bytes         body   = 2;  // 消息体，根据消息类型解析为不同结构
+}
+
+// 心跳消息
+message Heartbeat {
+  int64 client_time = 1;  // 客户端时间戳
+}
+
+// 登录消息
+message LoginMessage {
+  string token = 1;  // 登录token
+}
+
+// 登出消息
+message LogoutMessage {}
+
+// 加入房间消息
+message JoinRoomMessage {
+  string room_id = 1;  // 房间ID
+  string password = 2; // 房间密码（可选）
+}
+
+// 离开房间消息
+message LeaveRoomMessage {
+  string room_id = 1; // 房间ID
+}
+
+// 游戏操作消息
+message GameActionMessage {
+  string action_type = 1;  // 操作类型
+  bytes  action_data = 2;  // 操作数据
+}
+
+// 聊天消息
+message ChatMessage {
+  int32  chat_type = 1;   // 聊天类型：0-世界 1-房间 2-私聊
+  int32  target_id = 2;   // 目标ID（私聊时使用）
+  string content   = 3;   // 聊天内容
+}
+
+// 用户信息查询
+message UserInfoQuery {
+  int32 user_id = 1; // 查询的用户ID，0表示查询自己的信息
+}
+
+// 房间列表查询
+message RoomListQuery {
+  string game_type = 1;  // 游戏类型
+  int32  page       = 2;  // 页码
+  int32  page_size  = 3;  // 每页大小
+}
+
+// 游戏状态推送
+message GameStatePush {
+  string room_id      = 1;  // 房间ID
+  int32  game_status  = 2;  // 游戏状态
+  bytes  game_data    = 3;  // 游戏数据
+  int64  update_time  = 4;  // 更新时间
+}
+
+// 房间信息推送
+message RoomInfoPush {
+  string room_id      = 1;  // 房间ID
+  string room_name    = 2;  // 房间名称
+  int32  player_count = 3;  // 玩家数量
+  int32  max_players  = 4;  // 最大玩家数
+  int32  room_status  = 5;  // 房间状态
+  bytes  room_data    = 6;  // 房间数据
+}
+
+// 用户状态更新推送
+message UserUpdatePush {
+  int32  user_id      = 1;  // 用户ID
+  int32  status       = 2;  // 用户状态
+  string location     = 3;  // 用户位置（房间ID等）
+  bytes  user_data    = 4;  // 用户数据
+}
+
+// 系统消息推送
+message SystemMessagePush {
+  int32  msg_type  = 1;  // 消息类型
+  string title     = 2;  // 标题
+  string content   = 3;  // 内容
+  int64  expire_at = 4;  // 过期时间
+}
+
+// 聊天消息推送
+message ChatMessagePush {
+  int32  sender_id    = 1;  // 发送者ID
+  string sender_name  = 2;  // 发送者名称
+  int32  chat_type    = 3;  // 聊天类型
+  int32  target_id    = 4;  // 目标ID
+  string content      = 5;  // 内容
+  int64  send_time    = 6;  // 发送时间
+}
+
+// 广播消息
+message BroadcastMessage {
+  string broadcast_id   = 1;  // 广播ID
+  int32  broadcast_type = 2;  // 广播类型
+  string title          = 3;  // 标题
+  string content        = 4;  // 内容
+  bytes  extra_data     = 5;  // 额外数据
+}
+
+// 通用响应消息
+message CommonResponse {
+  int32       code    = 1;  // 响应码
+  string      msg     = 2;  // 响应消息
+  bytes       data    = 3;  // 响应数据
+  string      msg_id  = 4;  // 对应的请求消息ID
+}
+
+// 房间列表响应
+message RoomListResponse {
+  repeated RoomInfo rooms      = 1;  // 房间列表
+  int32            total_count = 2;  // 总数量
+  int32            page        = 3;  // 当前页码
+  int32            page_size   = 4;  // 每页大小
+}
+
+// 房间信息
+message RoomInfo {
+  string room_id      = 1;  // 房间ID
+  string room_name    = 2;  // 房间名称
+  string game_type    = 3;  // 游戏类型
+  int32  player_count = 4;  // 当前玩家数
+  int32  max_players  = 5;  // 最大玩家数
+  int32  room_status  = 6;  // 房间状态
+  string create_time  = 7;  // 创建时间
+}

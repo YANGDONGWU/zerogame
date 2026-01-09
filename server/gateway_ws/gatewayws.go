@@ -6,16 +6,18 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"zerogame/server/gateway_ws/internal/config"
-	"zerogame/server/gateway_ws/internal/handler"
 	"zerogame/server/gateway_ws/internal/svc"
 
 	"github.com/zeromicro/go-zero/core/conf"
-	"github.com/zeromicro/go-zero/rest"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
-var configFile = flag.String("f", "etc/gatewayws-api.yaml", "the config file")
+var configFile = flag.String("f", "/Users/o/work/go/zerogame/server/gateway_ws/etc/gatewayws-api.yaml", "the config file")
 
 func main() {
 	flag.Parse()
@@ -23,12 +25,32 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 
-	server := rest.MustNewServer(c.RestConf)
-	defer server.Stop()
+	// 初始化日志
+	logx.MustSetup(c.Log)
 
+	// 创建服务上下文
 	ctx := svc.NewServiceContext(c)
-	handler.RegisterHandlers(server, ctx)
 
-	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
-	server.Start()
+	// 启动WebSocket服务器
+	if err := ctx.Start(); err != nil {
+		logx.Errorf("Failed to start server: %v", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("WebSocket Gateway started successfully!\n")
+	fmt.Printf("WebSocket server listening on: %s:%d%s\n", c.WebSocket.Host, c.WebSocket.Port, c.WebSocket.Path)
+	fmt.Printf("Max connections: %d\n", c.WebSocket.MaxConnections)
+	fmt.Printf("Heartbeat interval: %d seconds\n", c.WebSocket.HeartbeatInterval)
+
+	// 等待中断信号
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	<-sigChan
+	fmt.Println("\nShutting down server...")
+
+	// 优雅关闭
+	ctx.Stop()
+
+	fmt.Println("Server stopped.")
 }

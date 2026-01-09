@@ -1,3 +1,27 @@
 Name: gateway_ws-api
 Host: 0.0.0.0
-Port: 8888
+Port: 8080
+Timeout: 30000
+
+Log:
+  Mode: console
+  Level: info
+  Encoding: json
+
+WebSocket:
+  Host: 0.0.0.0
+  Port: 8888
+  Path: "/ws"
+  ReadTimeout: 60
+  WriteTimeout: 60
+  MaxMessageSize: 65536
+  HeartbeatInterval: 30
+  HeartbeatTimeout: 90
+  MaxConnections: 10000
+  EnableCompression: true
+  AllowedOrigins:
+    - "*"
+  # 序列化方式: "json" 或 "proto"
+  # json: 开发友好，易调试，兼容性好（推荐开发环境）
+  # proto: 生产优化，高性能，小体积（推荐生产环境）
+  SerializationFormat: "json"
