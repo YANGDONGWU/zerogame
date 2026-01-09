@@ -7,6 +7,7 @@ require (
 	github.com/coocood/freecache v1.2.4
 	github.com/gorilla/websocket v1.5.1
 	github.com/json-iterator/go v1.1.12
+	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.17.2
 	github.com/zeromicro/go-zero v1.9.4
 	golang.org/x/sync v0.19.0

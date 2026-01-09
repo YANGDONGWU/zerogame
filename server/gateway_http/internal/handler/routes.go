@@ -14,15 +14,62 @@ import (
 func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
+			// 原有的handler（保持兼容）
 			{
 				Method:  http.MethodGet,
 				Path:    "/from/:name",
 				Handler: Gateway_httpHandler(serverCtx),
 			},
+			// 手动实现的handler（保持兼容）
 			{
 				Method:  http.MethodPost,
 				Path:    "/login",
 				Handler: LoginHandler(serverCtx),
+			},
+			// ===========================================
+			// 动态网关路由 - 推荐使用
+			// ===========================================
+
+			// 通用网关 - 支持POST请求体传递service和method
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/generic",
+				Handler: GenericGatewayHandler(serverCtx),
+			},
+			// RESTful风格网关 - 支持路径参数动态路由
+			// 示例: POST /api/login/logon
+			// 示例: GET /api/user/getUserInfo?user_id=123
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/:service/:method",
+				Handler: RESTfulGatewayHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/api/:service/:method",
+				Handler: RESTfulGatewayHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/api/:service/:method",
+				Handler: RESTfulGatewayHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/api/:service/:method",
+				Handler: RESTfulGatewayHandler(serverCtx),
+			},
+			// 健康检查
+			{
+				Method:  http.MethodGet,
+				Path:    "/health",
+				Handler: func(ctx *svc.ServiceContext) http.HandlerFunc {
+					return func(w http.ResponseWriter, r *http.Request) {
+						w.Header().Set("Content-Type", "application/json")
+						w.WriteHeader(http.StatusOK)
+						w.Write([]byte(`{"status":"ok","service":"gateway_http"}`))
+					}
+				}(serverCtx),
 			},
 		},
 	)

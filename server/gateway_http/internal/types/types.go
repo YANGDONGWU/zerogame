@@ -3,6 +3,46 @@
 
 package types
 
+import "encoding/json"
+
+// 通用HTTP请求结构 - 支持动态路由
+type GenericRequest struct {
+	Service string                 `json:"service" form:"service"`     // 服务名，如 "login", "user"
+	Method  string                 `json:"method" form:"method"`       // 方法名，如 "Logon", "GetUserInfo"
+	Data    map[string]interface{} `json:"data" form:"data"`           // 请求数据
+	Headers map[string]string     `json:"headers,omitempty"`          // 额外的头部信息
+}
+
+// 通用HTTP响应结构
+type GenericResponse struct {
+	Code    int32       `json:"code"`              // 响应码：0-成功，其他-错误码
+	Message string      `json:"message"`           // 响应消息
+	Data    interface{} `json:"data,omitempty"`    // 响应数据
+}
+
+// RPC请求包装器
+type RPCRequest struct {
+	Service string      `json:"service"`
+	Method  string      `json:"method"`
+	Data    interface{} `json:"data"`
+}
+
+// RPC响应包装器
+type RPCResponse struct {
+	Code    int32       `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
+// 路由配置
+type RouteConfig struct {
+	Service string `json:"service"`
+	Method  string `json:"method"`
+	Path    string `json:"path"`
+	HTTPMethod string `json:"http_method"` // GET, POST, PUT, DELETE
+}
+
+// 为了兼容性保留旧的结构
 type LoginReq struct {
 	Accounts string `json:"accounts"`
 	Password string `json:"password"`
@@ -19,4 +59,13 @@ type Request struct {
 
 type Response struct {
 	Message string `json:"message"`
+}
+
+// 工具函数：JSON序列化
+func (r *GenericResponse) ToJSON() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+func (r *GenericResponse) FromJSON(data []byte) error {
+	return json.Unmarshal(data, r)
 }

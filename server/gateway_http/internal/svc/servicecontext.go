@@ -5,6 +5,7 @@ package svc
 
 import (
 	loginpb "zerogame/pb/login"
+	userpb "zerogame/pb/user"
 	"zerogame/server/gateway_http/internal/config"
 
 	"github.com/zeromicro/go-zero/zrpc"
@@ -13,6 +14,7 @@ import (
 type ServiceContext struct {
 	Config   config.Config
 	LoginRpc loginpb.LoginServiceClient
+	UserRpc  userpb.UserServiceClient
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -20,6 +22,9 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config: c,
 		LoginRpc: loginpb.NewLoginServiceClient(
 			zrpc.MustNewClient(c.LoginRpc).Conn(),
+		),
+		UserRpc: userpb.NewUserServiceClient(
+			zrpc.MustNewClient(c.UserRpc).Conn(),
 		),
 	}
 }
